@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockWise AI - Your Intelligent Stock Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="cover-body">
+    <div class="cover-container">
+        <div class="header-cover">
+            <i class="fas fa-chart-line header-icon"></i>
+            <h1>StockWise AI</h1>
+            <p class="tagline">Your Intelligent Stock Analysis Partner</p>
+        </div>
+
+        <div class="strategy-selection">
+            <h2>Choose Your Investment Strategy:</h2>
+            <div class="strategy-options">
+
+                <a href="{{ url_for('analyzer_page', strategy='day_trading') }}" class="strategy-button">
+                    <i class="fas fa-sun strategy-icon"></i>
+                    <h3>Day Trading</h3>
+                    <p>Focus on short periods (1m, 5m, 30m) for rapid intraday analysis.</p>
+                </a>
+
+                <a href="{{ url_for('analyzer_page', strategy='swing_trading') }}" class="strategy-button">
+                    <i class="fas fa-chart-area strategy-icon"></i>
+                    <h3>Swing Trading</h3>
+                    <p>Medium-term analysis (1h, 1d, 1wk) for trend catching.</p>
+                </a>
+
+                <a href="{{ url_for('analyzer_page', strategy='long_term') }}" class="strategy-button">
+                    <i class="fas fa-tree strategy-icon"></i>
+                    <h3>Long Term Investment</h3>
+                    <p>Focus on broader periods (1d, 1wk, 1mo) for fundamental insights.</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-cover">
+            <p>&copy; 2025 StockWise AI. All rights reserved. Made by Bhavishya ⚡</p>
+            <p>Disclaimer: For educational purposes only. Not financial advice.</p>
+        </div>
+    </div>
+</body>
+</html>

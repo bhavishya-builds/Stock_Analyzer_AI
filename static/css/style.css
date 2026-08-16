@@ -1,0 +1,207 @@
+/* ========================================================== */
+/* StockWise AI - Enhanced UI Styles (style.css) */
+/* ========================================================== */
+
+/* --- Root Variables & Base Styles --- */
+:root {
+    /* Colors */
+    --color-primary: #1e90ff; /* Dodger Blue */
+    --color-secondary: #00bcd4; /* Cyan */
+    --color-background-dark: #1f2833;
+    --color-card-dark: #2c3847;
+    --color-text-light: #f1f1f1;
+    --color-text-dark: #333;
+    --color-success: #10b981; /* Green */
+    --color-danger: #ef4444; /* Red */
+    --color-warning: #f59e0b; /* Amber */
+
+    /* Spacing */
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+
+    /* Border Radius */
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Fonts */
+    --font-primary: 'Inter', sans-serif;
+    --font-heading: 'Montserrat', sans-serif;
+}
+
+/* General Body Styling */
+body {
+    font-family: var(--font-primary);
+    background-color: var(--color-background-dark);
+    color: var(--color-text-light);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ========================================================== */
+/* Cover Page Styles (cover.html) - Unchanged */
+/* ========================================================== */
+.cover-body { display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center; }
+.cover-container { max-width: 900px; margin: var(--space-lg); }
+.header-cover .header-icon { font-size: 4em; color: var(--color-primary); }
+.header-cover h1 { font-family: var(--font-heading); font-size: 3.5em; font-weight: 700; margin: var(--space-md) 0 var(--space-sm) 0; }
+.header-cover .tagline { font-size: 1.5em; font-weight: 500; color: #aaa; margin-bottom: var(--space-lg); }
+.strategy-selection h2 { font-family: var(--font-heading); font-size: 1.8em; font-weight: 600; margin-bottom: var(--space-lg); }
+.strategy-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); }
+.strategy-button { background-color: var(--color-card-dark); padding: var(--space-lg); border-radius: var(--radius-lg); text-decoration: none; color: var(--color-text-light); border: 2px solid transparent; transition: all 0.3s ease; border-bottom: 4px solid var(--color-primary); }
+.strategy-button:hover { transform: translateY(-5px); border-color: var(--color-primary); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
+.strategy-button .strategy-icon { font-size: 2.5em; color: var(--color-primary); margin-bottom: var(--space-md); }
+.strategy-button h3 { font-family: var(--font-heading); font-size: 1.3em; font-weight: 600; margin-bottom: var(--space-sm); }
+.strategy-button p { font-size: 0.95em; color: #ccc; line-height: 1.5; }
+.footer-cover { margin-top: var(--space-lg); color: #888; font-size: 0.9em; }
+
+/* ========================================================== */
+/* Dashboard Page Styles (index.html) */
+/* ========================================================== */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* --- Controls Panel --- */
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    background-color: var(--color-card-dark);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    align-items: flex-end;
+}
+.input-group { display: flex; flex-direction: column; flex-grow: 1; }
+.input-group label { font-size: 0.9em; font-weight: 600; color: #ccc; margin-bottom: var(--space-sm); }
+.input-group label i { margin-right: var(--space-sm); color: var(--color-primary); }
+.input-group input, .input-group select { background-color: #334255; border: 2px solid #44566b; border-radius: var(--radius-md); padding: 12px; font-size: 1em; color: var(--color-text-light); font-family: var(--font-primary); }
+.input-group input:focus, .input-group select:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.3); }
+.analyze-button { background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); border: none; color: white; font-size: 1.1em; font-weight: 700; padding: 12px var(--space-lg); border-radius: var(--radius-md); cursor: pointer; transition: all 0.3s ease; flex-grow: 0; }
+.analyze-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); }
+.analyze-button i { margin-right: var(--space-sm); }
+
+/* --- Base Card Styles --- */
+.card { background-color: var(--color-card-dark); border-radius: var(--radius-lg); padding: var(--space-lg); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); border-left: 5px solid var(--color-primary); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); }
+.card-title { font-family: var(--font-heading); font-size: 1.1em; font-weight: 600; color: #eee; }
+.card-title i { margin-right: var(--space-sm); color: var(--color-primary); }
+
+/* --- Chart Section --- */
+.chart-section { padding: var(--space-lg); min-height: 600px; }
+#chart-container-simple, #chart-container-pro { width: 100%; height: 100%; }
+
+/* --- Analysis Section --- */
+.analysis-section { display: block; }
+
+/* Grid layout for cards */
+.simple-view,
+.pro-view > #analysis-results-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Increased min-width for new content */
+    gap: var(--space-lg);
+}
+/* Pro analysis card styling */
+.analysis-card h4 { font-family: var(--font-heading); font-size: 1.1em; font-weight: 600; color: #eee; margin: 0 0 var(--space-md) 0; border-bottom: 1px solid #44566b; padding-bottom: var(--space-sm); }
+.analysis-card h4 i { margin-right: var(--space-sm); color: var(--color-primary); }
+.analysis-value { font-size: 1.5em; font-weight: 700; margin-bottom: var(--space-sm); }
+.analysis-insight { font-size: 0.95em; color: #ccc; line-height: 1.5; margin: 0; }
+.analysis-insight strong { color: var(--color-text-light); }
+
+/* --- Specific Cards --- */
+#price-card-content { text-align: left; }
+#current-price { font-size: 2.5em; font-weight: 700; }
+#price-status { font-size: 1.2em; font-weight: 500; color: #aaa; }
+
+/* Recommendation Card */
+.recommendation-card { border-left: 8px solid var(--color-primary) !important; background-color: #334255; margin-bottom: var(--space-lg); grid-column: 1 / -1; }
+#recommendation-status-pro, #recommendation-status-simple { font-weight: 700; padding: 4px 10px; border-radius: 4px; font-size: 0.9em; }
+#recommendation-text-pro { font-size: 1.1em; color: var(--color-text-light); }
+#recommendation-text-simple { font-size: 1.3em; font-weight: 500; }
+
+/* Alarm Status */
+#alarm-status { font-weight: 700; font-size: 0.9em; }
+.no-alarm { color: #888; }
+.warning { color: var(--color-warning); }
+
+/* Status & Loading */
+.status-message { padding: var(--space-md); border-radius: var(--radius-md); font-weight: 600; margin-top: var(--space-md); }
+.error { background-color: rgba(239, 68, 68, 0.1); color: var(--color-danger); border: 1px solid var(--color-danger); }
+.loading-indicator { text-align: center; font-size: 1.2em; font-weight: 600; color: #ccc; padding: var(--space-lg); }
+
+/* Helper classes */
+.hidden { display: none !important; }
+.positive { color: var(--color-success); }
+.negative { color: var(--color-danger); }
+.neutral { color: var(--color-warning); }
+.info { color: #ccc; }
+
+/* ========================================================== */
+/* NEW: Simple/Pro Toggle Switch Styles */
+/* ========================================================== */
+.toggle-switch-container { display: flex; align-items: center; justify-content: center; gap: var(--space-md); min-width: 180px; }
+#view-mode-label { font-size: 1.1em; font-weight: 600; color: var(--color-text-light); transition: color 0.3s ease; }
+.toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; }
+input:checked + .slider { background-color: var(--color-primary); }
+input:checked + .slider:before { transform: translateX(26px); }
+.slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
+
+/* ========================================================== */
+/* NEW: Simple View Educational Card Styles */
+/* ========================================================== */
+.simple-view .analysis-card {
+    display: flex;
+    flex-direction: column;
+}
+.education-image {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: var(--space-sm) 0 var(--space-md) 0;
+    background-color: #334255; /* Placeholder bg */
+    aspect-ratio: 2 / 1; /* 600x300 aspect ratio */
+    object-fit: cover;
+}
+.education-how-to-use {
+    font-size: 0.9em;
+    color: #ccc;
+    background-color: rgba(0,0,0,0.15);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    margin-top: auto; /* Pushes this to the bottom */
+    border-left: 3px solid var(--color-secondary);
+}
+.education-how-to-use strong {
+    color: var(--color-secondary);
+    font-weight: 700;
+}
+.education-how-to-use b { /* For text from backend */
+    color: var(--color-text-light);
+}
+
+/* ========================================================== */
+/* Responsive Styles */
+/* ========================================================== */
+@media (max-width: 1200px) {
+    .controls-panel { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+    .strategy-options { grid-template-columns: 1fr; }
+    .controls-panel { grid-template-columns: 1fr; }
+    .analyze-button { width: 100%; }
+    .toggle-switch-container { width: 100%; margin-top: var(--space-sm); }
+    .simple-view,
+    .pro-view > #analysis-results-container { grid-template-columns: 1fr; }
+    #current-price { font-size: 2em; }
+    #recommendation-text-simple { font-size: 1.1em; }
+}

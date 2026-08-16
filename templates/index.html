@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockWise AI - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        const initialStrategy = "{{ initial_strategy }}";
+    </script>
+</head>
+<body>
+    <div class="dashboard-container">
+
+        <div class="controls-panel">
+            <a href="{{ url_for('cover_page') }}" style="color:var(--color-text-light); margin-right:15px; font-size:1.5em; align-self: center;"><i class="fas fa-arrow-left"></i></a>
+
+            <div class="input-group" style="flex-grow:3; min-width:200px;">
+                <label for="symbol"><i class="fas fa-magnifying-glass"></i> Stock Symbol (e.g., TSLA, RELIANCE.NS)</label>
+                <input type="text" id="symbol" placeholder="Enter symbol" value="" required>
+            </div>
+
+            <div class="input-group">
+                <label for="timeframe"><i class="fas fa-chart-simple"></i> Timeframe</label>
+                <select id="timeframe"></select>
+            </div>
+
+            <div class="input-group" style="flex-grow:0; min-width:150px;">
+                <label for="investment-amount"><i class="fas fa-money-bill-wave"></i> Investment Amount (₹)</label>
+                <input type="number" id="investment-amount" placeholder="e.g., 50000" step="1000">
+            </div>
+
+            <div class="input-group" style="flex-grow:0; min-width:120px;">
+                <label for="alarm-price"><i class="fas fa-bell"></i> Alarm Price</label>
+                <input type="number" id="alarm-price" placeholder="Optional price" step="0.01">
+            </div>
+
+            <div class="toggle-switch-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="view-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <span id="view-mode-label">Simple View</span>
+            </div>
+
+            <button type="button" id="analyze-btn" class="analyze-button"><i class="fas fa-flask"></i> Analyze</button>
+        </div>
+
+        <div class="chart-section card">
+            <div id="chart-container-simple">
+                <p style="text-align:center; padding-top:250px; color:#999;">Enter a stock symbol and click 'Analyze' to load the chart.</p>
+            </div>
+            <div id="chart-container-pro" class="hidden">
+                </div>
+        </div>
+
+        <div class="analysis-section">
+
+            <div class="card" style="border-left-color: var(--color-primary); margin-bottom: var(--space-lg);">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-tags"></i> Current Market Price</div>
+                    <span id="alarm-status" class="no-alarm">No alarm set</span>
+                </div>
+                <div id="price-card-content">
+                    <span id="current-price">---</span>
+                    <p id="price-status">Awaiting first analysis...</p>
+                </div>
+            </div>
+
+            <div id="error-message" class="status-message error hidden"></div>
+            <div id="loading-indicator" class="loading-indicator hidden">
+                <i class="fas fa-spinner fa-spin"></i> Analyzing data...
+            </div>
+
+            <div class="simple-view">
+                <div class="card analysis-card recommendation-card" id="simple-recommendation-card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-hand-holding-usd"></i> AI Recommendation</div>
+                        <span id="recommendation-status-simple" class="info">Pending</span>
+                    </div>
+                    <div id="recommendation-text-simple">
+                        Enter a symbol to get a plain English summary of the stock's health.
+                    </div>
+                </div>
+
+                <div class="card analysis-card" style="border-left-color: var(--color-success);">
+                    <h4><i class="fas fa-lightbulb"></i> What's a Chart Pattern?</h4>
+                    <div class="analysis-value" id="pattern-signal-simple">N/A</div>
+                    <p class="analysis-insight" id="pattern-analysis-simple">We look for special shapes in the chart that can hint if the price might change direction.</p>
+
+                    <img id="pattern-image" src="https://i.imgur.com/G3GvQyv.png" alt="Pattern diagram" class="education-image">
+                    <p class="analysis-insight" id="pattern-education-text">A candle shows the open, high, low, and close price for a set time.</p>
+                    <div class="education-how-to-use">
+                        <strong>How to use this:</strong> <span id="pattern-how-to-use">We've marked the detected pattern on the chart with a yellow arrow.</span>
+                    </div>
+                </div>
+
+                <div class="card analysis-card" style="border-left-color: var(--color-warning);">
+                    <h4><i class="fas fa-bolt"></i> What is Momentum (RSI)?</h4>
+                    <div class="analysis-value" id="rsi-signal-simple">N/A</div>
+                    <p class="analysis-insight" id="rsi-analysis-simple">Measures if a stock is 'Oversold' (maybe cheap) or 'Overbought' (maybe expensive).</p>
+
+                    <img id="rsi-image" src="https://i.imgur.com/L7bV9jN.png" alt="RSI diagram" class="education-image">
+                    <p class="analysis-insight" id="rsi-education-text">RSI stands for Relative Strength Index. It's a momentum indicator that moves between 0 and 100.</p>
+                    <div class="education-how-to-use" id="rsi-how-to-use">
+                        <strong>How to use this:</strong> Traders look for two key levels: <b>70 (Overbought)</b> and <b>30 (Oversold)</b>. A stock at 70 might be too expensive. A stock at 30 might be too cheap.
+                    </div>
+                </div>
+
+                <div class="card analysis-card" style="border-left-color: var(--color-secondary);">
+                    <h4><i class="fas fa-chart-line"></i> What is the Price Trend (EMA)?</h4>
+                    <div class="analysis-value" id="ema-signal-simple">N/A</div>
+                    <p class="analysis-insight" id="ema-analysis-simple">Shows if the stock is in a general 'Upward Trend' or 'Downward Trend'.</p>
+
+                    <img id="ema-image" src="https://i.imgur.com/v1k1A8A.png" alt="EMA diagram" class="education-image">
+                    <p class="analysis-insight" id="ema-education-text">EMA stands for Exponential Moving Average. It's a line on the chart that smooths out price data to show the trend.</p>
+                    <div class="education-how-to-use" id="ema-how-to-use">
+                        <strong>How to use this:</strong> When a <b>Fast line crosses ABOVE a Slow line</b>, it's a 'Bullish' signal. You can see this in detail on the 'Pro View' chart.
+                    </div>
+                </div>
+
+                <div class="card analysis-card" style="border-left-color: var(--color-primary);">
+                    <h4><i class="fas fa-calculator"></i> Shares to Consider</h4>
+                    <div class="analysis-value" id="suggested-shares-simple">N/A</div>
+                    <p class="analysis-insight" id="position-sizing-analysis-simple">Enter an investment amount to see how many shares you could consider.</p>
+                </div>
+                <div class="card analysis-card" style="border-left-color: var(--color-danger);">
+                    <h4><i class="fas fa-shield-halved"></i> Suggested Safety Net</h4>
+                    <div class="analysis-value" id="stop-loss-value-simple">N/A</div>
+                    <p class="analysis-insight" id="stop-loss-analysis-simple">A price to consider selling at to help manage potential losses.</p>
+                </div>
+                <div class="card analysis-card" style="border-left-color: var(--color-primary);">
+                    <h4><i class="fas fa-hand-holding-hand"></i> Price Prediction (5Y Model)</h4>
+                    <div class="analysis-value" id="predicted-price-simple">N/A</div>
+                    <p class="analysis-insight" id="prediction-analysis-simple">Our model's best guess for the next price. (Not a guarantee!)</p>
+                </div>
+            </div>
+
+            <div class="pro-view hidden">
+                <div class="card analysis-card recommendation-card" id="overall-recommendation-card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-hand-holding-usd"></i> OVERALL AI RECOMMENDATION</div>
+                        <span id="recommendation-status-pro" class="info">Pending Analysis</span>
+                    </div>
+                    <div id="recommendation-text-pro">
+                        Enter a symbol and analyze to get an actionable recommendation based on multiple indicators.
+                    </div>
+                </div>
+
+                <div id="analysis-results-container">
+                    <div class="card analysis-card" id="position-sizing-card" style="border-left-color: var(--color-primary);">
+                        <h4><i class="fas fa-calculator"></i> Position Sizing (2% Risk Rule)</h4>
+                        <div class="analysis-value" id="suggested-shares-pro">N/A</div>
+                        <p class="analysis-insight" id="position-sizing-analysis-pro">Suggests shares based on max 2% risk of your investment, using the calculated stop loss.</p>
+                        <p class="analysis-insight" id="profit-loss-estimate" style="font-weight: bold; margin-top: 5px;">P/L Estimate: N/A</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: var(--color-warning);">
+                        <h4><i class="fas fa-bolt"></i> RSI Signal</h4>
+                        <div class="analysis-value" id="rsi-signal-pro">N/A</div>
+                        <p class="analysis-insight" id="rsi-analysis-pro">Relative Strength Index measures momentum and overbought/oversold conditions.</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: var(--color-secondary);">
+                        <h4><i class="fas fa-chart-line"></i> EMA Crossover</h4>
+                        <div class="analysis-value" id="ema-signal-pro">N/A</div>
+                        <p class="analysis-insight" id="ema-analysis-pro">Exponential Moving Averages help identify trends and potential reversals.</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: var(--color-danger);">
+                        <h4><i class="fas fa-shield-halved"></i> Stop Loss</h4>
+                        <div class="analysis-value" id="stop-loss-value-pro">N/A</div>
+                        <p class="analysis-insight" id="stop-loss-analysis-pro">Lowest low of the last 10 candles, suggested for risk management.</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: var(--color-success);">
+                        <h4><i class="fas fa-bullseye"></i> Take Profit (1:1.5 R:R)</h4>
+                        <div class="analysis-value" id="take-profit-value-pro">N/A</div>
+                        <p class="analysis-insight">Calculated price target based on 1.5 times the distance to the Stop Loss.</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: var(--color-primary);">
+                        <h4><i class="fas fa-hand-holding-hand"></i> Price Prediction (5Y Model)</h4>
+                        <div class="analysis-value" id="predicted-price-pro">N/A</div>
+                        <p class="analysis-insight" id="prediction-analysis-pro">Stable 5-year regression model predicts the next daily closing price.</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: var(--color-success);">
+                        <h4><i class="fas fa-lightbulb"></i> Candlestick Pattern</h4>
+                        <div class="analysis-value" id="pattern-signal-pro">N/A</div>
+                        <p class="analysis-insight">Detects bullish/bearish reversal patterns. Annotated on chart.</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: #aaa;">
+                        <h4><i class="fas fa-truck-fast"></i> Volume Analysis</h4>
+                        <div class="analysis-value" id="volume-text-pro">N/A</div>
+                        <p class="analysis-insight" id="volume-analysis-pro">Compares current volume to the average to gauge market interest.</p>
+                    </div>
+                    <div class="card analysis-card" style="border-left-color: var(--color-success);">
+                        <h4><i class="fas fa-ranking-star"></i> Top 3 Bullish Stocks</h4>
+                        <div class="analysis-value" id="bullish-stocks-value-pro" style="font-size:1.1em; line-height:1.4;">
+                            (Click Analyze to load...)
+                        </div>
+                        <p class="analysis-insight">*Live data based on daily change of pre-selected symbols.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // --- Setup Timeframe Select ---
+            const strategyMap = {
+                'day_trading': {
+                    label: 'Day Trading',
+                    options: [{ value: '1d_1m', text: '1 Day (1 Min)' }, { value: '5d_5m', text: '5 Days (5 Min)' }, { value: '1mo_30m', text: '1 Month (30 Min)' },]
+                },
+                'swing_trading': {
+                    label: 'Swing Trading',
+                    options: [{ value: '6mo_1h', text: '6 Months (1 Hour)' }, { value: '1y_1d', text: '1 Year (Daily)' }, { value: '2y_1d', text: '2 Years (Daily)' },]
+                },
+                'long_term': {
+                    label: 'Long Term Investment',
+                    options: [{ value: '5y_1d', text: '5 Years (Daily)' }, { value: 'ytd_1d', text: 'Year To Date (Daily)' }, { value: 'max_1d', text: 'Max Available (Daily)' },]
+                }
+            };
+            const timeframeSelect = document.getElementById('timeframe');
+            const currentStrategy = strategyMap[initialStrategy] || strategyMap['day_trading'];
+            currentStrategy.options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.text;
+                timeframeSelect.appendChild(option);
+            });
+
+            // --- Get All Elements ---
+            const symbolInput = document.getElementById('symbol');
+            const analyzeButton = document.getElementById('analyze-btn');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const errorMessage = document.getElementById('error-message');
+            const investmentAmountInput = document.getElementById('investment-amount');
+            const alarmStatus = document.getElementById('alarm-status');
+            const currentPrice = document.getElementById('current-price');
+            const priceStatus = document.getElementById('price-status');
+
+            // --- View Toggle Elements ---
+            const viewToggle = document.getElementById('view-toggle');
+            const viewModeLabel = document.getElementById('view-mode-label');
+            const simpleView = document.querySelector('.simple-view');
+            const proView = document.querySelector('.pro-view');
+            const chartContainerSimple = document.getElementById('chart-container-simple');
+            const chartContainerPro = document.getElementById('chart-container-pro');
+
+            // --- Simple View Card Elements ---
+            const recTextSimple = document.getElementById('recommendation-text-simple');
+            const recStatusSimple = document.getElementById('recommendation-status-simple');
+            const sharesSimple = document.getElementById('suggested-shares-simple');
+            const sizingSimple = document.getElementById('position-sizing-analysis-simple');
+            const stopLossSimple = document.getElementById('stop-loss-value-simple');
+            const stopLossAnalysisSimple = document.getElementById('stop-loss-analysis-simple');
+            // RSI Simple
+            const rsiSimple = document.getElementById('rsi-signal-simple');
+            const rsiAnalysisSimple = document.getElementById('rsi-analysis-simple');
+            const rsiImage = document.getElementById('rsi-image');
+            const rsiEducation = document.getElementById('rsi-education-text');
+            const rsiHowToUse = document.getElementById('rsi-how-to-use');
+            // EMA Simple
+            const emaSimple = document.getElementById('ema-signal-simple');
+            const emaAnalysisSimple = document.getElementById('ema-analysis-simple');
+            const emaImage = document.getElementById('ema-image');
+            const emaEducation = document.getElementById('ema-education-text');
+            const emaHowToUse = document.getElementById('ema-how-to-use');
+            // Pattern Simple
+            const patternSimple = document.getElementById('pattern-signal-simple');
+            const patternAnalysisSimple = document.getElementById('pattern-analysis-simple');
+            const patternImage = document.getElementById('pattern-image');
+            const patternEducation = document.getElementById('pattern-education-text');
+            const patternHowToUse = document.getElementById('pattern-how-to-use');
+            // Prediction Simple
+            const predictionSimple = document.getElementById('predicted-price-simple');
+            const predictionAnalysisSimple = document.getElementById('prediction-analysis-simple');
+
+            // --- Pro View Card Elements ---
+            const recTextPro = document.getElementById('recommendation-text-pro');
+            const recStatusPro = document.getElementById('recommendation-status-pro');
+            const sharesPro = document.getElementById('suggested-shares-pro');
+            const sizingPro = document.getElementById('position-sizing-analysis-pro');
+            const plEstimate = document.getElementById('profit-loss-estimate');
+            const stopLossPro = document.getElementById('stop-loss-value-pro');
+            const stopLossAnalysisPro = document.getElementById('stop-loss-analysis-pro');
+            const takeProfitPro = document.getElementById('take-profit-value-pro');
+            const rsiPro = document.getElementById('rsi-signal-pro');
+            const rsiAnalysisPro = document.getElementById('rsi-analysis-pro');
+            const emaPro = document.getElementById('ema-signal-pro');
+            const emaAnalysisPro = document.getElementById('ema-analysis-pro');
+            const patternPro = document.getElementById('pattern-signal-pro');
+            const predictionPro = document.getElementById('predicted-price-pro');
+            const predictionAnalysisPro = document.getElementById('prediction-analysis-pro');
+            const volumePro = document.getElementById('volume-text-pro');
+            const volumeAnalysisPro = document.getElementById('volume-analysis-pro');
+            const bullishStocksPro = document.getElementById('bullish-stocks-value-pro');
+
+
+            // === VIEW TOGGLE LOGIC ===
+            viewToggle.addEventListener('change', function() {
+                const isProMode = this.checked;
+
+                if (isProMode) {
+                    viewModeLabel.textContent = 'Pro View';
+                    viewModeLabel.style.color = 'var(--color-primary)';
+                    simpleView.classList.add('hidden');
+                    proView.classList.remove('hidden');
+                    chartContainerSimple.classList.add('hidden');
+                    chartContainerPro.classList.remove('hidden');
+                } else {
+                    viewModeLabel.textContent = 'Simple View';
+                    viewModeLabel.style.color = 'var(--color-text-light)';
+                    simpleView.classList.remove('hidden');
+                    proView.classList.add('hidden');
+                    chartContainerSimple.classList.remove('hidden');
+                    chartContainerPro.classList.add('hidden');
+                }
+                if (window.Plotly) {
+                    Plotly.Plots.resize(chartContainerSimple);
+                    Plotly.Plots.resize(chartContainerPro);
+                }
+            });
+
+
+            // === ANALYZE BUTTON CLICK LOGIC ===
+            analyzeButton.addEventListener('click', function() {
+                const symbol = symbolInput.value.toUpperCase().trim();
+                const timeframe = timeframeSelect.value;
+                const alarmPrice = document.getElementById('alarm-price').value;
+                const investmentAmount = investmentAmountInput.value;
+
+                errorMessage.classList.add('hidden');
+                chartContainerSimple.innerHTML = '';
+                chartContainerPro.innerHTML = '';
+                loadingIndicator.classList.remove('hidden');
+
+                if (!symbol) {
+                    errorMessage.textContent = 'Please enter a stock symbol.';
+                    errorMessage.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
+                    return;
+                }
+
+                const url = `/analyze_stock?symbol=${symbol}&timeframe_selection=${timeframe}&alarm_price=${alarmPrice}&investment_amount=${investmentAmount}`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(result => {
+                        loadingIndicator.classList.add('hidden');
+
+                        if (result.success) {
+
+                            // 1. Chart Rendering (Plot BOTH charts)
+                            try {
+                                const chartDataSimple = JSON.parse(result.chart_json_simple);
+                                Plotly.newPlot('chart-container-simple', chartDataSimple.data, chartDataSimple.layout, { responsive: true });
+                            } catch (e) { console.error("Error plotting simple chart:", e); }
+
+                            try {
+                                const chartDataPro = JSON.parse(result.chart_json_pro);
+                                Plotly.newPlot('chart-container-pro', chartDataPro.data, chartDataPro.layout, { responsive: true });
+                            } catch (e) { console.error("Error plotting pro chart:", e); }
+
+                            // 2. Analysis Card Updates
+                            const analysis = result.analysis;
+
+                            // --- Global Price Card ---
+                            currentPrice.innerHTML = `₹${analysis.latest_price_text}`;
+                            priceStatus.innerHTML = analysis.latest_price_analysis;
+                            currentPrice.className = analysis.price_change_percent >= 0 ? 'positive' : 'negative';
+
+                            // --- Update Recommendation Cards (Simple & Pro) ---
+                            recTextSimple.innerHTML = analysis.overall_recommendation_simple;
+                            recTextPro.innerHTML = analysis.overall_recommendation_pro;
+                            let simpleStatusClass = 'info', proStatusClass = 'info';
+                            if (analysis.overall_recommendation_simple.includes('Good')) { simpleStatusClass = 'positive'; }
+                            else if (analysis.overall_recommendation_simple.includes('Bad')) { simpleStatusClass = 'negative'; }
+                            else { simpleStatusClass = 'neutral'; }
+                            if (analysis.overall_recommendation_pro.includes('Bullish')) { proStatusClass = 'positive'; }
+                            else if (analysis.overall_recommendation_pro.includes('Bearish')) { proStatusClass = 'negative'; }
+                            else { proStatusClass = 'neutral'; }
+                            recStatusSimple.className = simpleStatusClass;
+                            recStatusSimple.textContent = simpleStatusClass.toUpperCase();
+                            recStatusPro.className = proStatusClass;
+                            recStatusPro.textContent = proStatusClass.toUpperCase();
+
+                            // --- Update SIMPLE Cards (with Education) ---
+                            sharesSimple.innerHTML = analysis.suggested_shares;
+                            sizingSimple.innerHTML = analysis.position_sizing_analysis_simple;
+                            stopLossSimple.innerHTML = analysis.stop_loss;
+                            stopLossAnalysisSimple.innerHTML = analysis.stop_loss_analysis_simple;
+                            predictionSimple.innerHTML = analysis.predicted_price_text;
+                            predictionAnalysisSimple.innerHTML = analysis.prediction_analysis_simple;
+
+                            // RSI Simple
+                            rsiSimple.innerHTML = analysis.rsi_signal_simple;
+                            rsiAnalysisSimple.innerHTML = analysis.rsi_analysis_simple;
+                            rsiImage.src = analysis.rsi_education.image_url;
+                            rsiEducation.innerHTML = analysis.rsi_education.education;
+                            rsiHowToUse.innerHTML = `<strong>How to use this:</strong> ${analysis.rsi_education.how_to_use}`;
+
+                            // EMA Simple
+                            emaSimple.innerHTML = analysis.ema_signal_simple;
+                            emaAnalysisSimple.innerHTML = analysis.ema_analysis_simple;
+                            emaImage.src = analysis.ema_education.image_url;
+                            emaEducation.innerHTML = analysis.ema_education.education;
+                            emaHowToUse.innerHTML = `<strong>How to use this:</strong> ${analysis.ema_education.how_to_use}`;
+
+                            // Pattern Simple
+                            patternSimple.innerHTML = analysis.pattern_signal_simple;
+                            patternAnalysisSimple.innerHTML = analysis.pattern_education.description_simple || analysis.pattern_education.education;
+                            patternImage.src = analysis.pattern_education.image_url;
+                            patternEducation.innerHTML = analysis.pattern_education.education;
+                            patternHowToUse.innerHTML = `<strong>How to use this:</strong> ${analysis.pattern_education.how_to_use}`;
+
+
+                            // --- Update PRO Cards ---
+                            sharesPro.innerHTML = analysis.suggested_shares;
+                            sizingPro.innerHTML = analysis.position_sizing_analysis_pro;
+                            plEstimate.innerHTML = `P/L Estimate: ${analysis.profit_loss_estimate}`;
+                            stopLossPro.innerHTML = analysis.stop_loss;
+                            stopLossAnalysisPro.innerHTML = analysis.stop_loss_analysis_pro;
+                            takeProfitPro.innerHTML = analysis.take_profit;
+                            rsiPro.innerHTML = analysis.rsi_signal_pro;
+                            rsiAnalysisPro.innerHTML = "See 3rd chart subplot for RSI (70/30)."; // Hardcode pro text
+                            emaPro.innerHTML = analysis.ema_signal_pro;
+                            emaAnalysisPro.innerHTML = "See 1st chart subplot for EMA 9/21 Crossover."; // Hardcode pro text
+                            patternPro.innerHTML = analysis.pattern_signal_pro;
+                            predictionPro.innerHTML = analysis.predicted_price_text;
+                            predictionAnalysisPro.innerHTML = analysis.prediction_analysis_pro;
+                            volumePro.innerHTML = analysis.volume_text;
+                            volumeAnalysisPro.innerHTML = analysis.volume_analysis_pro;
+                            bullishStocksPro.innerHTML = analysis.bullish_stocks_html;
+
+                            // --- Update Card Colors ---
+                            if (analysis.suggested_shares === 'N/A' || analysis.suggested_shares === '0 shares') {
+                                sharesSimple.classList.add('negative'); sharesPro.classList.add('negative');
+                            } else {
+                                sharesSimple.classList.add('positive'); sharesPro.classList.add('positive');
+                            }
+
+                            // 3. Alarm Status
+                            alarmStatus.classList.remove('positive', 'negative', 'no-alarm', 'info', 'warning');
+                            if (result.alarm_status === 'No alarm') {
+                                alarmStatus.innerHTML = result.alarm_status;
+                                alarmStatus.classList.add('no-alarm');
+                            } else {
+                                alarmStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${result.alarm_status}`;
+                                if (result.alarm_status.includes('REACHED')) { alarmStatus.classList.add('negative'); }
+                                else if (result.alarm_status.includes('Price Alert')) { alarmStatus.classList.add('warning'); }
+                                else if (result.alarm_status.includes('Alarm set')) { alarmStatus.classList.add('info'); }
+                            }
+
+                        } else {
+                            // Handle Error
+                            const errorText = `Error: ${result.error_message}`.replace('Traceback (most recent call last):', 'An error occurred during analysis:');
+                            errorMessage.textContent = errorText;
+                            errorMessage.classList.remove('hidden');
+                            console.error('Backend reported error:', result.error_message);
+                            const errorHtml = `<p style="text-align:center; padding-top:200px; color:var(--color-danger);"><i class="fas fa-exclamation-circle"></i> Error loading data. Check symbol and timeframe.</p>`;
+                            chartContainerSimple.innerHTML = errorHtml;
+                            chartContainerPro.innerHTML = errorHtml;
+                        }
+                    })
+                    .catch(error => {
+                        // Handle Fetch Fail
+                        console.error('Fetch error:', error);
+                        errorMessage.textContent = 'An unexpected error occurred. Please check your network connection.';
+                        errorMessage.classList.remove('hidden');
+                        loadingIndicator.classList.add('hidden');
+                        const errorHtml = `<p style="text-align:center; padding-top:200px; color:var(--color-danger);"><i class="fas fa-exclamation-circle"></i> Error loading data. Please try again.</p>`;
+                        chartContainerSimple.innerHTML = errorHtml;
+                        chartContainerPro.innerHTML = errorHtml;
+                    });
+            });
+
+            // Trigger resize on window load to fix plotly sizing
+            window.addEventListener('load', () => {
+                if (window.Plotly) {
+                    Plotly.Plots.resize(chartContainerSimple);
+                    Plotly.Plots.resize(chartContainerPro);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
